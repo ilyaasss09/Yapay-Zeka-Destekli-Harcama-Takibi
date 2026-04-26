@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akıllı Harcama Sistemi</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+        button { background-color: #28a745; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        .ai-badge { background-color: #007bff; color: white; padding: 3px 8px; border-radius: 12px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🤖 Akıllı Harcama Yöneticisi</h2>
+    <p>Harcamanızı yazın, yapay zeka dil modeli otomatik kategorize etsin!</p>
+    
+    <input type="text" id="desc" placeholder="Örn: Migros'tan haftalık erzak aldım">
+    <input type="number" id="amount" placeholder="Tutar (₺)">
+    <button onclick="addExpense()">Harcamayı Ekle ve Analiz Et</button>
+
+    <h3 style="margin-top: 30px;">Harcama Geçmişi</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Açıklama</th>
+                <th>Tutar</th>
+                <th>Kategori (AI Tahmini)</th>
+            </tr>
+        </thead>
+        <tbody id="expense-list">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    async function fetchExpenses() {
+        const res = await fetch('/expenses/');
+        const data = await res.json();
+        const list = document.getElementById('expense-list');
+        list.innerHTML = '';
+        data.forEach(item => {
+            list.innerHTML += `<tr>
+                <td>${item.description}</td>
+                <td>${item.amount} ₺</td>
+                <td><span class="ai-badge">${item.category}</span></td>
+            </tr>`;
+        });
+    }
+
+    async function addExpense() {
+        const desc = document.getElementById('desc').value;
+        const amount = document.getElementById('amount').value;
+        if(!desc || !amount) return alert("Lütfen tüm alanları doldurun.");
+
+        const res = await fetch('/add-expense/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: desc, amount: parseFloat(amount) })
+        });
+        
+        if(res.ok) {
+            document.getElementById('desc').value = '';
+            document.getElementById('amount').value = '';
+            fetchExpenses();
+        }
+    }
+
+    // Sayfa yüklendiğinde verileri çek
+    fetchExpenses();
+</script>
+
+</body>
+</html>
